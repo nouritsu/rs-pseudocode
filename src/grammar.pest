@@ -1,0 +1,5 @@
+Expression = { LInteger | LReal | LBoolean }
+
+LInteger = { ASCII_DIGIT+ }
+LReal    = { ASCII_DIGIT+ ~ "." ~ ASCII_DIGIT+ }
+LBoolean = { "true" | "false" }
