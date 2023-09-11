@@ -132,9 +132,9 @@ mod tests {
 
         #[test]
         fn grouping() {
-            assert_rule_ok!(Rule::GroupingExpr, "(\"Hello\")");
-            assert_rule_err!(Rule::GroupingExpr, "(1 + 2)");
-            assert_rule_err!(Rule::GroupingExpr, "(TRUE AND TRUE)");
+            assert_rule_ok!(Rule::GroupingExpr, "( \"Hello\" )");
+            assert_rule_ok!(Rule::GroupingExpr, "(-1)");
+            assert_rule_ok!(Rule::GroupingExpr, "(5 + 5)");
             assert_rule_err!(Rule::GroupingExpr, "(1 + 2");
             assert_rule_err!(Rule::GroupingExpr, "1 + 2)");
             assert_rule_err!(Rule::GroupingExpr, "");

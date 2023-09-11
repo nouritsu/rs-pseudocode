@@ -3,7 +3,7 @@ DataType   = @{ "INTEGER" | "REAL" | "BOOLEAN" | "CHAR" | "STRING" }
 Identifier = @{ (ASCII_ALPHA | "_") ~ (ASCII_ALPHANUMERIC | "_")* }
 
 // Expressions
-Expr         = { LiteralExpr | UnaryExpr | BinaryExpr | LogicalExpr | GroupingExpr }
+Expr         = { GroupingExpr | LogicalExpr | BinaryExpr | UnaryExpr | LiteralExpr }
 LiteralExpr  = { LInteger | LReal | LBoolean | LChar | LString }
 UnaryExpr    = { ArithmeticOperator ~ (LiteralExpr | Identifier) }
 BinaryExpr   = { (LiteralExpr | Identifier) ~ (ArithmeticOperator) ~ (LiteralExpr | Identifier) }
