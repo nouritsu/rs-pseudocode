@@ -8,6 +8,8 @@ Thank you for your interest in contributing to my Pseudocode Interpreter. There 
 - Make sure grammar contributions use snake_case
 - Try to avoid nesting where possible
 - Use snake_case for identifiers and PascalCase for types in Rust (lints should appear if you don't)
+- Use the [Pseudocode Reference](https://github.com/nouritsu/rs-pseudocode/blob/main/grammar/Pseudocode_Ref.pdf) to understand pseudocode syntax
+- Use the [ENBF Reference](https://github.com/nouritsu/rs-pseudocode/blob/main/grammar/ENBF_ref.ebnf) to understand ENBF syntax
 
 ## Bug Reports
 
