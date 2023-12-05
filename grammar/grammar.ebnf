@@ -1,10 +1,15 @@
+(* Statements *)
+stmt_output
+    = "OUTPUT", arguments;
+
 (* Expressions *)
 expression
     = expr_variable
     | expr_literal
     | expr_unary
     | expr_binary
-    | expr_grouping;
+    | expr_grouping
+    | expr_call;
 
 expr_variable
     = identifier;
@@ -22,7 +27,7 @@ expr_grouping
     = OPAREN, expression, CPAREN;
 
 expr_call
-    = identifier, OPAREN, [ expression, { ",", expression } ], CPAREN;
+    = identifier, OPAREN, [ arguments ], CPAREN;
 
 (* Literals *)
 literal
@@ -66,6 +71,9 @@ identifier
     | UNDSCR, { ALPHA
     | DIGIT
     | UNDSCR };
+
+arguments
+    = expression, { ",", expression };
 
 (* Base *)
 ALPHANUM
