@@ -1,0 +1,103 @@
+(* Expressions *)
+expression
+    = expr_variable
+    | expr_literal
+    | expr_unary
+    | expr_binary
+    | expr_grouping;
+
+expr_variable
+    = identifier;
+
+expr_literal
+    = literal;
+
+expr_unary
+    = operator, expression;
+
+expr_binary
+    = expression, operator, expression;
+
+expr_grouping
+    = OPAREN, expression, CPAREN;
+
+(* Literals *)
+literal
+    = literal_integer
+    | literal_real
+    | literal_character
+    | literal_string
+    | literal_boolean
+    | literal_date;
+
+literal_integer
+    = DIGIT, { DIGIT };
+
+literal_real
+    = literal_integer, '.', literal_integer;
+
+literal_character
+    = "'", ANY, "'";
+
+literal_string
+    = '"', ANY, { ANY }, '"';
+
+literal_boolean
+    = "TRUE"
+    | "FALSE";
+
+literal_date
+    = BTICK, literal_integer, BTICK;
+
+(* Operators *)
+operator
+    = ? Math Operators and Logical Operators ?;
+
+(* Comments *)
+comment
+    = "//", { ANY };
+
+(* Miscellaneous *)
+identifier
+    = ALPHA
+    | UNDSCR, { ALPHA
+    | DIGIT
+    | UNDSCR };
+
+(* Base *)
+ALPHANUM
+    = ASCII_NUM
+    | ASCII_ALPHA;
+
+DIGIT
+    = ? ASCII Digit , from 0 to 9 ?;
+
+ALPHA
+    = ? ASCII Alphabet , ' a ' to ' z ' and ' A ' to ' Z ' ?;
+
+ANY
+    = ? Any Character ?;
+
+OPAREN
+    = "(";
+
+CPAREN
+    = ")";
+
+OBRACE
+    = "{";
+
+CBRACE
+    = "}";
+
+OSQUARE
+    = "[";
+
+CSQUARE
+    = "]";
+
+BTICK
+    = ? Backtick Character ?;
+
+UNDSCR
+    = ? Underscore ?;
