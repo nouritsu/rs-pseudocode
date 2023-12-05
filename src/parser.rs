@@ -1,7 +1,7 @@
 use crate::{expr::Expr, value::Value};
 use chumsky::{prelude::*, text::digits};
 
-pub fn parser<'a>() -> impl Parser<char, Expr, Error = Simple<char>> {
+pub fn parser() -> impl Parser<char, Expr, Error = Simple<char>> {
     parse_expr().padded().then_ignore(end())
 }
 
