@@ -7,11 +7,13 @@ pub fn parser<'a>() -> impl Parser<char, Expr, Error = Simple<char>> {
 
 /* Expressions */
 fn parse_expr() -> impl Parser<char, Expr, Error = Simple<char>> {
-    recursive(|_expr| expr_literal())
-}
+    recursive(|_expr| {
+        let literal = lit().map(Expr::Literal);
 
-fn expr_literal() -> impl Parser<char, Expr, Error = Simple<char>> {
-    lit().map(Expr::Literal)
+        let variable = text::ident().map(Expr::Variable);
+
+        variable.or(literal)
+    })
 }
 
 /* Literals */
