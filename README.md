@@ -57,3 +57,7 @@ To build and interpret a file use -
 ```sh
 cargo run --release -- <file>
 ```
+
+# For Contributors
+
+Thank you for taking interest in my little project, head over to [Contribution Guidelines](https://github.com/nouritsu/rs-pseudocode/blob/main/CONTRIBUTING.md).
