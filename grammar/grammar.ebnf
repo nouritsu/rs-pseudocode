@@ -4,18 +4,18 @@ stmt_output
 
 (* Expressions *)
 expression
-    = expr_variable
-    | expr_literal
+    = expr_literal
+    | expr_variable
     | expr_unary
     | expr_binary
     | expr_grouping
     | expr_call;
 
-expr_variable
-    = identifier;
-
 expr_literal
     = literal;
+
+expr_variable
+    = identifier;
 
 expr_unary
     = operator, expression;
@@ -55,7 +55,7 @@ literal_boolean
     | "FALSE";
 
 literal_date
-    = BTICK, literal_integer, BTICK;
+    = BTICK, [ 2 *  ], ( [ 2 *  ], ( literal_integer ), "/" ), [ 4 *  ], ( literal_integer ), BTICK;
 
 (* Operators *)
 operator
