@@ -1,10 +1,10 @@
 # About
 
-This project is a Cambridge Style Pseudocode interpreter. It is meant for educational purposes only.
+This project is a [Cambridge Style Pseudocode](https://www.cambridgeinternational.org/Images/697401-2026-syllabus-legacy-notice.pdf) interpreter. It is meant for educational purposes only.
 
-Cambridge mandates writing algorithms and programs in pseudocode, on paper for students appearing for AS Level Computer Science (9618) and IGCSE Level Computer Science (0478) exams.
+Cambridge mandates writing algorithms and programs in pseudocode, on paper for students appearing for [AS Level Computer Science (9618)](https://www.cambridgeinternational.org/programmes-and-qualifications/cambridge-international-as-and-a-level-computer-science-9618/) and [IGCSE Level Computer Science (0478)](https://www.cambridgeinternational.org/programmes-and-qualifications/cambridge-igcse-computer-science-0478/) exams.
 
-But does this not defeat the whole purpose of pseudocode? I believe it does not, an interpreter would help students to cross check their dry-runs as well as help them get better at learning the syntax through meaningful error messages.
+But doesn't an interpreter defeat the whole purpose of pseudocode? I believe it does not, an interpreter would help students to check their dry-runs as well as help with learning the syntax through meaningful error messages.
 
 # Usage Guide
 
