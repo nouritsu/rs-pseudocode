@@ -7,7 +7,7 @@ pub enum Value {
     Character(char),
     String(String),
     Boolean(bool),
-    Date(u8, u8, u8),
+    Date(u8, u8, u16),
 }
 
 impl Display for Value {
