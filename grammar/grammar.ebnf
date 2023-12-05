@@ -21,6 +21,9 @@ expr_binary
 expr_grouping
     = OPAREN, expression, CPAREN;
 
+expr_call
+    = identifier, OPAREN, [ expression, { ",", expression } ], CPAREN;
+
 (* Literals *)
 literal
     = literal_integer
