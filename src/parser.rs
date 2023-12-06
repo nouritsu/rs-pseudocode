@@ -7,12 +7,21 @@ pub fn parser() -> impl Parser<char, Expr, Error = Simple<char>> {
 
 /* Expressions */
 fn parse_expr() -> impl Parser<char, Expr, Error = Simple<char>> {
-    recursive(|_expr| {
+    recursive(|expr| {
         let literal = lit().map(Expr::Literal);
-
         let variable = text::ident().map(Expr::Variable);
+        let atom = literal
+            .or(expr.delimited_by(just('('), just(')')))
+            .or(variable);
 
-        variable.or(literal)
+        let unary = just("-")
+            .padded()
+            .or(just("NOT").padded())
+            .repeated()
+            .then(atom)
+            .foldr(|op, rhs| Expr::Unary(op.parse().unwrap(), Box::new(rhs)));
+
+        unary
     })
 }
 
