@@ -1,5 +1,5 @@
 use crate::{expr::Expr, value::Value};
-use chumsky::{prelude::*, text::digits};
+use chumsky::prelude::*;
 
 pub fn parser() -> impl Parser<char, Expr, Error = Simple<char>> {
     parse_expr().padded().then_ignore(end())
@@ -70,7 +70,7 @@ fn lit_date() -> impl Parser<char, Value, Error = Simple<char>> {
         .then_ignore(just('/'))
         .then(text::int(10))
         .then_ignore(just("/"))
-        .then(digits(10))
+        .then(text::int(10))
         .map(|((d, m), y)| Value::Date(d.parse().unwrap(), m.parse().unwrap(), y.parse().unwrap()))
         .delimited_by(just('`'), just('`'))
 }

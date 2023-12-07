@@ -1,6 +1,7 @@
+use color_eyre::owo_colors::OwoColorize;
 use std::{fmt::Display, str::FromStr};
 
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Operator {
     // Math
     Addition,
@@ -27,23 +28,23 @@ pub enum Operator {
 impl Display for Operator {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match *self {
-            Operator::Addition => write!(f, "{}", "+"),
-            Operator::Subtraction => write!(f, "{}", "-"),
-            Operator::Multiplication => write!(f, "{}", "*"),
-            Operator::Division => write!(f, "{}", "/"),
-            Operator::Quotient => write!(f, "{}", "DIV"),
-            Operator::Modulo => write!(f, "{}", "MOD"),
+            Operator::Addition => write!(f, "{}", "+".purple()),
+            Operator::Subtraction => write!(f, "{}", "-".purple()),
+            Operator::Multiplication => write!(f, "{}", "*".purple()),
+            Operator::Division => write!(f, "{}", "/".purple()),
+            Operator::Quotient => write!(f, "{}", "DIV".purple()),
+            Operator::Modulo => write!(f, "{}", "MOD".purple()),
 
-            Operator::And => write!(f, "{}", "AND"),
-            Operator::Or => write!(f, "{}", "OR"),
-            Operator::Not => write!(f, "{}", "NOT"),
+            Operator::And => write!(f, "{}", "AND".purple()),
+            Operator::Or => write!(f, "{}", "OR".purple()),
+            Operator::Not => write!(f, "{}", "NOT".purple()),
 
-            Operator::Equals => write!(f, "{}", "="),
-            Operator::NotEquals => write!(f, "{}", "<>"),
-            Operator::GreaterThan => write!(f, "{}", ">"),
-            Operator::LesserThan => write!(f, "{}", "<"),
-            Operator::GreaterEqual => write!(f, "{}", ">="),
-            Operator::LesserEqual => write!(f, "{}", "<="),
+            Operator::Equals => write!(f, "{}", "=".purple()),
+            Operator::NotEquals => write!(f, "{}", "<>".purple()),
+            Operator::GreaterThan => write!(f, "{}", ">".purple()),
+            Operator::LesserThan => write!(f, "{}", "<".purple()),
+            Operator::GreaterEqual => write!(f, "{}", ">=".purple()),
+            Operator::LesserEqual => write!(f, "{}", "<=".purple()),
         }
     }
 }
