@@ -1,5 +1,4 @@
 mod expr;
-mod operator;
 mod parser;
 mod value;
 
