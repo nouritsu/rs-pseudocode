@@ -15,7 +15,7 @@ stmt_call
     = "CALL", [ OPAREN, arguments, CPAREN ];
 
 stmt_assign
-    = lvalue, op_assign, expression;
+    = lvalue, op_var_assign, expression;
 
 stmt_input
     = "INPUT", lvalue;
@@ -67,7 +67,7 @@ decl_var
     = "DECLARE" , identifier, ':', decl_var_type;
 
 decl_const
-    = "CONST", identifier, op_assign, literal;
+    = "CONST", identifier, op_const_assign, literal;
 
 decl_var_type
     = decl_var_basic_type
@@ -121,13 +121,16 @@ literal_date
     = BTICK, [ 2 *  ], ( [ 2 *  ], ( literal_integer ), "/" ), [ 4 *  ], ( literal_integer ), BTICK;
 
 (* Operators *)
-op_expr
+operator
     = ? Math Operators and Logical Operators ?;
 
 op_dot
     = '.';
 
-op_assign
+op_var_assign
+    = '<-';
+
+op_const_assign
     = '=';
 
 op_arr_index
