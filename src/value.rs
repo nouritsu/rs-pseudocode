@@ -2,7 +2,7 @@ use std::fmt::Display;
 
 #[derive(Debug, Clone, PartialEq, PartialOrd)]
 pub enum Value {
-    Integer(u64),
+    Integer(i64),
     Real(f64),
     Character(char),
     String(String),
