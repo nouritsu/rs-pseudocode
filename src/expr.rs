@@ -2,7 +2,7 @@ use crate::value::Value;
 use color_eyre::owo_colors::OwoColorize;
 use std::fmt::Display;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum Expr {
     Literal(Value),
     Variable(String),

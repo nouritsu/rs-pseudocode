@@ -1,12 +1,7 @@
-mod evaluator;
-mod expr;
-mod parser;
-mod value;
-
 use chumsky::Parser;
 use clap::Parser as CLParser;
 use color_eyre::{eyre, install as color_install};
-use parser::parser;
+use rs_pseudocode::parser::parser;
 use std::{
     fs,
     io::{self, Write},
