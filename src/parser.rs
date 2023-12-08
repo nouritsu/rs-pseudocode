@@ -87,7 +87,7 @@ fn parse_expr() -> impl Parser<char, Expr, Error = Simple<char>> {
 
             let or = and
                 .clone()
-                .then(op("OR").to(Expr::And as fn(_, _) -> _).then(and).repeated())
+                .then(op("OR").to(Expr::Or as fn(_, _) -> _).then(and).repeated())
                 .foldl(|lhs, (op, rhs)| op(Box::new(lhs), Box::new(rhs)));
 
             or
