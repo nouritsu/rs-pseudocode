@@ -31,8 +31,8 @@ pub enum Expr {
 impl Display for Expr {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            Expr::Literal(a) => write!(f, "({})", a.red()),
-            Expr::Variable(a) => write!(f, "({})", a.bright_black()),
+            Expr::Literal(a) => write!(f, "{}", a.red()),
+            Expr::Variable(a) => write!(f, "{}", a.bright_black()),
             Expr::Negation(a) => write!(f, "({} {})", "-".purple(), a),
             Expr::Not(a) => write!(f, "({} {})", "NOT".purple(), a),
             Expr::Addition(a, b) => write!(f, "({} {} {})", a, "+".purple(), b),
