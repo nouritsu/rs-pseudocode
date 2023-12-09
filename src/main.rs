@@ -1,8 +1,9 @@
 use chumsky::Parser;
 use clap::Parser as CLParser;
 use color_eyre::{eyre, install as color_install};
-use rs_pseudocode::parser::parser;
+use rs_pseudocode::{eval, parser::parser};
 use std::{
+    collections::HashMap,
     fs,
     io::{self, Write},
     process::exit,
@@ -56,7 +57,10 @@ fn run_repl() {
 
 fn run(src: &str) {
     match parser().parse(src) {
-        Ok(res) => println!("{}", res),
+        Ok(res) => match eval(&res, &mut HashMap::new()) {
+            Ok(res) => println!("{}", res),
+            Err(_) => todo!("error handling"),
+        },
         Err(err) => err.into_iter().for_each(|e| println!("{}", e)),
-    }
+    };
 }
