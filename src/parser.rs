@@ -1,9 +1,30 @@
-use crate::{expr::Expr, value::Value};
-use chumsky::{prelude::*, text::Character};
+use crate::{expr::Expr, value::Value, Stmt};
+use chumsky::{
+    prelude::*,
+    text::{keyword, newline, Character},
+};
 use time::{Date, Month};
 
-pub fn parser() -> impl Parser<char, Expr, Error = Simple<char>> {
-    parse_expr().padded().then_ignore(end())
+pub fn parser() -> impl Parser<char, Vec<Stmt>, Error = Simple<char>> {
+    parse_stmt()
+        .then_ignore(newline().or(end()))
+        .repeated()
+        .then_ignore(end())
+}
+
+/* Statements */
+fn parse_stmt() -> impl Parser<char, Stmt, Error = Simple<char>> {
+    stmt_output().or(stmt_expr())
+}
+
+fn stmt_expr() -> impl Parser<char, Stmt, Error = Simple<char>> {
+    parse_expr().map(|expr| Stmt::Expression(expr))
+}
+
+fn stmt_output() -> impl Parser<char, Stmt, Error = Simple<char>> {
+    keyword("OUTPUT")
+        .ignore_then(parse_expr_args())
+        .map(Stmt::Output)
 }
 
 /* Expressions */
@@ -165,4 +186,8 @@ fn n_digits(n: usize, radix: u32) -> impl Parser<char, u32, Error = Simple<char>
         .collect()
         .map(|s: String| s.parse().unwrap())
         .padded()
+}
+
+fn parse_expr_args() -> impl Parser<char, Vec<Expr>, Error = Simple<char>> {
+    parse_expr().padded().separated_by(just(","))
 }
