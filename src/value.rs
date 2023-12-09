@@ -227,26 +227,188 @@ impl Value {
     }
 
     pub fn eq(&self, rhs: &Self) -> ValueResult<Value> {
-        todo!();
+        Ok(match self {
+            Self::Integer(a) => match rhs {
+                Self::Integer(b) => Self::Boolean(a == b),
+                Self::Real(b) => Self::Boolean(*a as f64 == *b),
+                _ => return Err(ValueError::InvalidOperation),
+            },
+            Self::Real(a) => match rhs {
+                Self::Integer(b) => Self::Boolean(*a == *b as f64),
+                Self::Real(b) => Self::Boolean(a == b),
+                _ => return Err(ValueError::InvalidOperation),
+            },
+            Self::Character(a) => match rhs {
+                Self::Character(b) => Self::Boolean(a == b),
+                _ => return Err(ValueError::InvalidOperation),
+            },
+            Self::String(a) => match rhs {
+                Self::String(b) => Self::Boolean(a == b),
+                _ => return Err(ValueError::InvalidOperation),
+            },
+            Self::Boolean(a) => match rhs {
+                Self::Boolean(b) => Self::Boolean(a == b),
+                _ => return Err(ValueError::InvalidOperation),
+            },
+            Self::Date(a) => match rhs {
+                Self::Date(b) => Self::Boolean(a == b),
+                _ => return Err(ValueError::InvalidOperation),
+            },
+        })
     }
 
     pub fn ne(&self, rhs: &Self) -> ValueResult<Value> {
-        todo!();
+        Ok(match self {
+            Self::Integer(a) => match rhs {
+                Self::Integer(b) => Self::Boolean(a != b),
+                Self::Real(b) => Self::Boolean(*a as f64 != *b),
+                _ => return Err(ValueError::InvalidOperation),
+            },
+            Self::Real(a) => match rhs {
+                Self::Integer(b) => Self::Boolean(*a != *b as f64),
+                Self::Real(b) => Self::Boolean(a != b),
+                _ => return Err(ValueError::InvalidOperation),
+            },
+            Self::Character(a) => match rhs {
+                Self::Character(b) => Self::Boolean(a != b),
+                _ => return Err(ValueError::InvalidOperation),
+            },
+            Self::String(a) => match rhs {
+                Self::String(b) => Self::Boolean(a != b),
+                _ => return Err(ValueError::InvalidOperation),
+            },
+            Self::Boolean(a) => match rhs {
+                Self::Boolean(b) => Self::Boolean(a != b),
+                _ => return Err(ValueError::InvalidOperation),
+            },
+            Self::Date(a) => match rhs {
+                Self::Date(b) => Self::Boolean(a != b),
+                _ => return Err(ValueError::InvalidOperation),
+            },
+        })
     }
 
     pub fn gt(&self, rhs: &Self) -> ValueResult<Value> {
-        todo!();
+        Ok(match self {
+            Self::Integer(a) => match rhs {
+                Self::Integer(b) => Self::Boolean(a > b),
+                Self::Real(b) => Self::Boolean(*a as f64 > *b),
+                _ => return Err(ValueError::InvalidOperation),
+            },
+            Self::Real(a) => match rhs {
+                Self::Integer(b) => Self::Boolean(*a > *b as f64),
+                Self::Real(b) => Self::Boolean(a > b),
+                _ => return Err(ValueError::InvalidOperation),
+            },
+            Self::Character(a) => match rhs {
+                Self::Character(b) => Self::Boolean(a > b),
+                _ => return Err(ValueError::InvalidOperation),
+            },
+            Self::String(a) => match rhs {
+                Self::String(b) => Self::Boolean(a > b),
+                _ => return Err(ValueError::InvalidOperation),
+            },
+            Self::Boolean(a) => match rhs {
+                Self::Boolean(b) => Self::Boolean(a > b),
+                _ => return Err(ValueError::InvalidOperation),
+            },
+            Self::Date(a) => match rhs {
+                Self::Date(b) => Self::Boolean(a > b),
+                _ => return Err(ValueError::InvalidOperation),
+            },
+        })
     }
 
     pub fn lt(&self, rhs: &Self) -> ValueResult<Value> {
-        todo!();
+        Ok(match self {
+            Self::Integer(a) => match rhs {
+                Self::Integer(b) => Self::Boolean(a < b),
+                Self::Real(b) => Self::Boolean((*a as f64) < *b),
+                _ => return Err(ValueError::InvalidOperation),
+            },
+            Self::Real(a) => match rhs {
+                Self::Integer(b) => Self::Boolean(*a < *b as f64),
+                Self::Real(b) => Self::Boolean(a < b),
+                _ => return Err(ValueError::InvalidOperation),
+            },
+            Self::Character(a) => match rhs {
+                Self::Character(b) => Self::Boolean(a < b),
+                _ => return Err(ValueError::InvalidOperation),
+            },
+            Self::String(a) => match rhs {
+                Self::String(b) => Self::Boolean(a < b),
+                _ => return Err(ValueError::InvalidOperation),
+            },
+            Self::Boolean(a) => match rhs {
+                Self::Boolean(b) => Self::Boolean(a < b),
+                _ => return Err(ValueError::InvalidOperation),
+            },
+            Self::Date(a) => match rhs {
+                Self::Date(b) => Self::Boolean(a < b),
+                _ => return Err(ValueError::InvalidOperation),
+            },
+        })
     }
 
     pub fn ge(&self, rhs: &Self) -> ValueResult<Value> {
-        todo!();
+        Ok(match self {
+            Self::Integer(a) => match rhs {
+                Self::Integer(b) => Self::Boolean(a >= b),
+                Self::Real(b) => Self::Boolean(*a as f64 >= *b),
+                _ => return Err(ValueError::InvalidOperation),
+            },
+            Self::Real(a) => match rhs {
+                Self::Integer(b) => Self::Boolean(*a >= *b as f64),
+                Self::Real(b) => Self::Boolean(a >= b),
+                _ => return Err(ValueError::InvalidOperation),
+            },
+            Self::Character(a) => match rhs {
+                Self::Character(b) => Self::Boolean(a >= b),
+                _ => return Err(ValueError::InvalidOperation),
+            },
+            Self::String(a) => match rhs {
+                Self::String(b) => Self::Boolean(a >= b),
+                _ => return Err(ValueError::InvalidOperation),
+            },
+            Self::Boolean(a) => match rhs {
+                Self::Boolean(b) => Self::Boolean(a >= b),
+                _ => return Err(ValueError::InvalidOperation),
+            },
+            Self::Date(a) => match rhs {
+                Self::Date(b) => Self::Boolean(a >= b),
+                _ => return Err(ValueError::InvalidOperation),
+            },
+        })
     }
 
     pub fn le(&self, rhs: &Self) -> ValueResult<Value> {
-        todo!();
+        Ok(match self {
+            Self::Integer(a) => match rhs {
+                Self::Integer(b) => Self::Boolean(a <= b),
+                Self::Real(b) => Self::Boolean(*a as f64 <= *b),
+                _ => return Err(ValueError::InvalidOperation),
+            },
+            Self::Real(a) => match rhs {
+                Self::Integer(b) => Self::Boolean(*a <= *b as f64),
+                Self::Real(b) => Self::Boolean(a <= b),
+                _ => return Err(ValueError::InvalidOperation),
+            },
+            Self::Character(a) => match rhs {
+                Self::Character(b) => Self::Boolean(a <= b),
+                _ => return Err(ValueError::InvalidOperation),
+            },
+            Self::String(a) => match rhs {
+                Self::String(b) => Self::Boolean(a <= b),
+                _ => return Err(ValueError::InvalidOperation),
+            },
+            Self::Boolean(a) => match rhs {
+                Self::Boolean(b) => Self::Boolean(a <= b),
+                _ => return Err(ValueError::InvalidOperation),
+            },
+            Self::Date(a) => match rhs {
+                Self::Date(b) => Self::Boolean(a <= b),
+                _ => return Err(ValueError::InvalidOperation),
+            },
+        })
     }
 }

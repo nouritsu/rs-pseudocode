@@ -16,12 +16,12 @@ pub fn eval(expr: &Expr, vars: &mut HashMap<String, Value>) -> Result<Value, ()>
         Expr::Modulo(a, b) => eval(a, vars)?.modu(&eval(b, vars)?),
         Expr::And(a, b) => eval(a, vars)?.and(&eval(b, vars)?),
         Expr::Or(a, b) => eval(a, vars)?.or(&eval(b, vars)?),
-        Expr::Equals(_, _) => todo!(),
-        Expr::NotEquals(_, _) => todo!(),
-        Expr::GreaterThan(_, _) => todo!(),
-        Expr::LesserThan(_, _) => todo!(),
-        Expr::GreaterEqual(_, _) => todo!(),
-        Expr::LesserEqual(_, _) => todo!(),
+        Expr::Equals(a, b) => eval(a, vars)?.eq(&eval(b, vars)?),
+        Expr::NotEquals(a, b) => eval(a, vars)?.ne(&eval(b, vars)?),
+        Expr::GreaterThan(a, b) => eval(a, vars)?.gt(&eval(b, vars)?),
+        Expr::LesserThan(a, b) => eval(a, vars)?.lt(&eval(b, vars)?),
+        Expr::GreaterEqual(a, b) => eval(a, vars)?.ge(&eval(b, vars)?),
+        Expr::LesserEqual(a, b) => eval(a, vars)?.le(&eval(b, vars)?),
     }
     .map_err(|_| ())
 }
