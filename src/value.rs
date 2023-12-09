@@ -1,5 +1,5 @@
 use std::fmt::Display;
-use time::{Date, Month};
+use time::Date;
 
 #[derive(Debug, Clone, PartialEq, PartialOrd)]
 pub enum Value {
@@ -8,7 +8,7 @@ pub enum Value {
     Character(char),
     String(String),
     Boolean(bool),
-    Date(u8, u8, u16),
+    Date(Date),
 }
 
 pub enum ValueError {
@@ -26,7 +26,7 @@ impl Display for Value {
             Value::Character(c) => write!(f, "'{}'", c),
             Value::String(s) => write!(f, "\"{}\"", s),
             Value::Boolean(b) => write!(f, "{}", if *b { "TRUE" } else { "FALSE" }),
-            Value::Date(d, m, y) => write!(f, "`{}/{}/{}`", d, m, y),
+            Value::Date(d) => write!(f, "`{} {} {}`", d.day(), d.month(), d.year()),
         }
     }
 }
@@ -69,12 +69,7 @@ impl Value {
 
     fn try_as_date(&self) -> ValueResult<Date> {
         match self {
-            Self::Date(d, m, y) => Ok(Date::from_calendar_date(
-                *y as i32,
-                Month::try_from(*m).map_err(|_| ValueError::InvalidType)?,
-                *d,
-            )
-            .map_err(|_| ValueError::InvalidType)?),
+            Self::Date(d) => Ok(*d),
             _ => Err(ValueError::InvalidType),
         }
     }

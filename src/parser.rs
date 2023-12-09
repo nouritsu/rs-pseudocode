@@ -1,5 +1,6 @@
 use crate::{expr::Expr, value::Value};
 use chumsky::prelude::*;
+use time::{Date, Month};
 
 pub fn parser() -> impl Parser<char, Expr, Error = Simple<char>> {
     parse_expr().padded().then_ignore(end())
@@ -143,6 +144,15 @@ fn lit_date() -> impl Parser<char, Value, Error = Simple<char>> + Clone {
         .then(text::digits(10))
         .then_ignore(just("/"))
         .then(text::digits(10))
-        .map(|((d, m), y)| Value::Date(d.parse().unwrap(), m.parse().unwrap(), y.parse().unwrap()))
+        .map(|((d, m), y)| {
+            Value::Date(
+                Date::from_calendar_date(
+                    d.parse().unwrap(),
+                    Month::try_from(m.parse::<u8>().unwrap()).unwrap(), //TODO: handle the error here, don't unwrap
+                    y.parse().unwrap(),
+                )
+                .unwrap(), //TODO: handle the error here, don't unwrap
+            )
+        })
         .delimited_by(just('`'), just('`'))
 }
