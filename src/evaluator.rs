@@ -1,11 +1,13 @@
+use crate::{error::EvaluatorError, expr::Expr, result::EvaluatorResult, value::Value};
 use std::collections::HashMap;
 
-use crate::{expr::Expr, value::Value};
-
-pub fn eval(expr: &Expr, vars: &mut HashMap<String, Value>) -> Result<Value, ()> {
+pub fn eval(expr: &Expr, vars: &mut HashMap<String, Value>) -> EvaluatorResult<Value> {
     match expr {
         Expr::Literal(l) => Ok(l.clone()),
-        Expr::Variable(v) => Ok(vars.get(v).ok_or(())?.clone()),
+        Expr::Variable(v) => Ok(vars
+            .get(v)
+            .ok_or(EvaluatorError::VariableNotFound(v.to_owned()))?
+            .clone()),
         Expr::Negation(a) => eval(a, vars)?.neg(),
         Expr::Not(a) => eval(a, vars)?.not(),
         Expr::Addition(a, b) => eval(a, vars)?.add(&eval(b, vars)?),
@@ -23,5 +25,5 @@ pub fn eval(expr: &Expr, vars: &mut HashMap<String, Value>) -> Result<Value, ()>
         Expr::GreaterEqual(a, b) => eval(a, vars)?.ge(&eval(b, vars)?),
         Expr::LesserEqual(a, b) => eval(a, vars)?.le(&eval(b, vars)?),
     }
-    .map_err(|_| ())
+    .map_err(|e| EvaluatorError::Value(e))
 }
