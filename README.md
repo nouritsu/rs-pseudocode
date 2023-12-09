@@ -19,7 +19,7 @@ cargo install --git https://github.com/nouritsu/rs-pseudocode
 2. Run and pass file to be interpreted as first argument
 
 ```sh
-rs-pseudocode <file>
+rs-pseudocode [file]
 ```
 
 ## Uninstall
@@ -46,16 +46,16 @@ cargo build --release
 
 Executable located in target/release
 
-3. Run and pass file to be interpreted as the first argument
+3. Run
 
 ```sh
-./<path-to-executable> <file>
+./<path-to-executable> [file]
 ```
 
 To build and interpret a file use -
 
 ```sh
-cargo run --release -- <file>
+cargo run --release -- [file]
 ```
 
 # For Contributors
