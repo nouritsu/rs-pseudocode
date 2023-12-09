@@ -23,6 +23,7 @@ macro_rules! parse_failing {
 
 mod expr {
     use rs_pseudocode::{Expr, Value};
+    use time::macros::date;
 
     #[test]
     fn literal_expr() {
@@ -31,7 +32,10 @@ mod expr {
         parse_passing!("'a'", Expr::Literal(Value::Character('a')));
         parse_passing!("\"String\"", Expr::Literal(Value::String("String".into())));
         parse_passing!("TRUE", Expr::Literal(Value::Boolean(true)));
-        parse_passing!("`08/12/2023`", Expr::Literal(Value::Date(8, 12, 2023)));
+        parse_passing!(
+            "`08/12/2023`",
+            Expr::Literal(Value::Date(date!(2023 - 12 - 08)))
+        );
 
         parse_failing!("123abc999");
         parse_failing!("5.");
