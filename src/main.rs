@@ -27,27 +27,29 @@ fn main() -> eyre::Result<()> {
     let args = Args::parse();
 
     match args.src {
-        Some(f) => run_file(&f),
-        None => run_repl(),
+        Some(f) => run_file(&f, args.time),
+        None => run_repl(args.time),
     }
 
     Ok(())
 }
 
-fn run_file(f: &str) {
+fn run_file(f: &str, show_time: bool) {
     let src = fs::read_to_string(f).expect("unable to read source file");
     let (pt, et) = run(&src);
-    println!(
-        "Parse Time    :   {}",
-        format_duration(pt).to_string().bright_blue()
-    );
-    println!(
-        "Exec Time     :   {}",
-        format_duration(et).to_string().bright_red()
-    );
+    if show_time {
+        println!(
+            "Parse Time    :   {}",
+            format_duration(pt).to_string().bright_blue()
+        );
+        println!(
+            "Exec Time     :   {}",
+            format_duration(et).to_string().bright_red()
+        );
+    }
 }
 
-fn run_repl() {
+fn run_repl(show_time: bool) {
     loop {
         print!(":> ");
         io::stdout().flush().expect("unable to flush stdout");
@@ -62,14 +64,16 @@ fn run_repl() {
         }
 
         let (pt, et) = run(&line);
-        println!(
-            "Parse Time    :   {}",
-            format_duration(pt).to_string().bright_blue()
-        );
-        println!(
-            "Exec Time     :   {}",
-            format_duration(et).to_string().bright_red()
-        );
+        if show_time {
+            println!(
+                "Parse Time    :   {}",
+                format_duration(pt).to_string().bright_blue()
+            );
+            println!(
+                "Exec Time     :   {}",
+                format_duration(et).to_string().bright_red()
+            );
+        }
     }
 }
 
