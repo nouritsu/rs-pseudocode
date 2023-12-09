@@ -147,9 +147,9 @@ fn lit_date() -> impl Parser<char, Value, Error = Simple<char>> + Clone {
         .map(|((d, m), y)| {
             Value::Date(
                 Date::from_calendar_date(
-                    d.parse().unwrap(),
-                    Month::try_from(m.parse::<u8>().unwrap()).unwrap(), //TODO: handle the error here, don't unwrap
                     y.parse().unwrap(),
+                    Month::try_from(m.parse::<u8>().unwrap()).unwrap(), //TODO: handle the error here, don't unwrap
+                    d.parse().unwrap(),
                 )
                 .unwrap(), //TODO: handle the error here, don't unwrap
             )
