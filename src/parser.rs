@@ -1,5 +1,5 @@
 use crate::{expr::Expr, value::Value};
-use chumsky::prelude::*;
+use chumsky::{prelude::*, text::Character};
 use time::{Date, Month};
 
 pub fn parser() -> impl Parser<char, Expr, Error = Simple<char>> {
@@ -139,20 +139,29 @@ fn lit_bool() -> impl Parser<char, Value, Error = Simple<char>> + Clone {
 }
 
 fn lit_date() -> impl Parser<char, Value, Error = Simple<char>> + Clone {
-    text::digits(10)
+    n_digits(2, 10)
         .then_ignore(just('/'))
-        .then(text::digits(10))
+        .then(n_digits(2, 10))
         .then_ignore(just("/"))
-        .then(text::digits(10))
+        .then(n_digits(4, 10))
         .map(|((d, m), y)| {
             Value::Date(
                 Date::from_calendar_date(
-                    y.parse().unwrap(),
-                    Month::try_from(m.parse::<u8>().unwrap()).unwrap(), //TODO: handle the error here, don't unwrap
-                    d.parse().unwrap(),
+                    y as i32,
+                    Month::try_from(m as u8).unwrap(), //TODO: handle the error here, don't unwrap
+                    d as u8,
                 )
                 .unwrap(), //TODO: handle the error here, don't unwrap
             )
         })
         .delimited_by(just('`'), just('`'))
+}
+
+/* Helpers */
+fn n_digits(n: usize, radix: u32) -> impl Parser<char, u32, Error = Simple<char>> + Clone {
+    filter(move |c: &char| c.is_digit(radix))
+        .repeated()
+        .exactly(n)
+        .collect()
+        .map(|s: String| s.parse().unwrap())
 }
