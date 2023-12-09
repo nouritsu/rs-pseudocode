@@ -1,6 +1,33 @@
+(* Start Symbol *)
+program
+    = statement, { NEWLINE, statement};
+
 (* Statements *)
+statement
+    = stmt_call
+    | stmt_assign
+    | stmt_input
+    | stmt_output
+    | stmt_decl
+    | stmt_type_def;
+
+stmt_call
+    = "CALL", [ OPAREN, arguments, CPAREN ];
+
+stmt_assign
+    = lvalue, op_var_assign, expression;
+
+stmt_input
+    = "INPUT", lvalue;
+
 stmt_output
     = "OUTPUT", arguments;
+
+stmt_decl
+    = declaration;
+
+stmt_type_def
+    = type_def;
 
 (* Expressions *)
 expression
@@ -15,19 +42,55 @@ expr_literal
     = literal;
 
 expr_variable
-    = identifier;
+    = lvalue;
 
 expr_unary
-    = operator, expression;
+    = op_expr, expression;
 
 expr_binary
-    = expression, operator, expression;
+    = expression, op_expr, expression;
 
 expr_grouping
     = OPAREN, expression, CPAREN;
 
 expr_call
     = identifier, OPAREN, [ arguments ], CPAREN;
+
+(* Declarations*)
+declaration
+    = decl_var
+    | decl_const
+    | decl_proc
+    | decl_func;
+
+decl_var
+    = "DECLARE" , identifier, ':', decl_var_type;
+
+decl_const
+    = "CONST", identifier, op_const_assign, literal;
+
+decl_var_type
+    = decl_var_basic_type
+    | "ARRAY", decl_arr_bounds, "OF", decl_var_basic_type;
+
+decl_var_basic_type
+    = decl_var_atomic_type
+    | identifier;
+
+decl_var_atomic_type
+    = "INTEGER"
+    | "REAL"
+    | "CHAR"
+    | "STRING"
+    | "BOOLEAN"
+    | "DATE";
+
+decl_arr_bounds
+    = OSQUARE, ("0" | "1"), ':', literal_integer, { ',', ("0" | "1"), ':', literal_integer }, CSQUARE;
+
+(* Type Definitions *)
+type_def
+    = "TYPE", identifier, NEWLINE, decl_var, { decl_var }, "ENDTYPE";
 
 (* Literals *)
 literal
@@ -61,11 +124,26 @@ literal_date
 operator
     = ? Math Operators and Logical Operators ?;
 
+op_dot
+    = '.';
+
+op_var_assign
+    = '<-';
+
+op_const_assign
+    = '=';
+
+op_arr_index
+    = OSQUARE, literal_integer, {',', literal_integer} CSQUARE;
+
 (* Comments *)
 comment
     = "//", { ANY };
 
 (* Miscellaneous *)
+lvalue
+    = identifier, { op_arr_index | (op_dot, identifier) };
+
 identifier
     = ALPHA
     | UNDSCR, { ALPHA
@@ -112,3 +190,6 @@ BTICK
 
 UNDSCR
     = ? Underscore ?;
+
+NEWLINE
+    = ? Newline ?
