@@ -164,4 +164,5 @@ fn n_digits(n: usize, radix: u32) -> impl Parser<char, u32, Error = Simple<char>
         .exactly(n)
         .collect()
         .map(|s: String| s.parse().unwrap())
+        .padded()
 }
