@@ -2,7 +2,7 @@ use chumsky::Parser;
 use clap::Parser as CLParser;
 use color_eyre::{eyre, install as color_install, owo_colors::OwoColorize};
 use humantime::format_duration;
-use rs_pseudocode::{eval, parser::parser};
+use rs_pseudocode::{eval, parser};
 use std::{
     collections::HashMap,
     fs,
