@@ -2,7 +2,7 @@ use chumsky::Parser;
 use clap::Parser as CLParser;
 use color_eyre::{eyre, install as color_install, owo_colors::OwoColorize};
 use humantime::format_duration;
-use rs_pseudocode::{eval, parser};
+use rs_pseudocode::{exec, parser};
 use std::{
     collections::HashMap,
     fs,
@@ -36,7 +36,7 @@ fn main() -> eyre::Result<()> {
 
 fn run_file(f: &str, show_time: bool) {
     let src = fs::read_to_string(f).expect("unable to read source file");
-    let (pt, et) = run(&src);
+    let (pt, et) = run(&src, false);
     if show_time {
         println!(
             "Parse Time    :   {}",
@@ -63,7 +63,7 @@ fn run_repl(show_time: bool) {
             exit(0);
         }
 
-        let (pt, et) = run(&line);
+        let (pt, et) = run(&line, true);
         if show_time {
             println!(
                 "Parse Time    :   {}",
@@ -77,21 +77,26 @@ fn run_repl(show_time: bool) {
     }
 }
 
-fn run(src: &str) -> (Duration, Duration) {
+fn run(src: &str, repl: bool) -> (Duration, Duration) {
     let mut pt = Duration::default();
     let mut et = Duration::default();
 
     let mut reference = Instant::now();
     match parser().parse(src) {
-        Ok(res) => {
+        Ok(stmts) => {
             pt = Instant::now() - reference;
             reference = Instant::now();
-            match eval(&res, &mut HashMap::new()) {
-                Ok(res) => {
-                    et = Instant::now() - reference;
-                    println!("Result        :   {}", res.bright_black())
+            for stmt in stmts {
+                match exec(&stmt, &mut HashMap::new()) {
+                    Ok(res) => {
+                        et = Instant::now() - reference;
+                        match res {
+                            Some(s) if repl => println!("{}", s),
+                            _ => {}
+                        }
+                    }
+                    Err(_) => todo!("error handling"),
                 }
-                Err(_) => todo!("error handling"),
             }
         }
         Err(err) => err.into_iter().for_each(|e| println!("{}", e)),
