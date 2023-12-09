@@ -1,3 +1,4 @@
+use crate::{error::ValueError, result::ValueResult};
 use std::fmt::Display;
 use time::Date;
 
@@ -11,22 +12,15 @@ pub enum Value {
     Date(Date),
 }
 
-pub enum ValueError {
-    InvalidType,
-    InvalidOperation,
-}
-
-type ValueResult<T> = Result<T, ValueError>;
-
 impl Display for Value {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Value::Integer(i) => write!(f, "{}", i),
-            Value::Real(n) => write!(f, "{}f", n),
-            Value::Character(c) => write!(f, "'{}'", c),
-            Value::String(s) => write!(f, "\"{}\"", s),
+            Value::Real(n) => write!(f, "{}", n),
+            Value::Character(c) => write!(f, "{}", c),
+            Value::String(s) => write!(f, "{}", s),
             Value::Boolean(b) => write!(f, "{}", if *b { "TRUE" } else { "FALSE" }),
-            Value::Date(d) => write!(f, "`{} {} {}`", d.day(), d.month(), d.year()),
+            Value::Date(d) => write!(f, "{} {} {}", d.day(), d.month(), d.year()),
         }
     }
 }
