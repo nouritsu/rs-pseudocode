@@ -95,7 +95,7 @@ fn run(src: &str, repl: bool) -> (Duration, Duration) {
                             _ => {}
                         }
                     }
-                    Err(_) => todo!("error handling"),
+                    Err(err) => println!("{}", err),
                 }
             }
         }
