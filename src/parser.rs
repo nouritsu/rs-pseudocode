@@ -1,4 +1,4 @@
-use crate::{expr::Expr, value::Value, Stmt};
+use crate::{expr::Expr, val::Value, Stmt};
 use chumsky::{
     prelude::*,
     text::{keyword, newline, Character},
@@ -141,16 +141,37 @@ fn lit_int() -> impl Parser<char, Value, Error = Simple<char>> + Clone {
 }
 
 fn lit_char() -> impl Parser<char, Value, Error = Simple<char>> + Clone {
-    any()
+    let escape = just('\\').ignore_then(
+        just('\\')
+            .or(just('/'))
+            .or(just('\''))
+            .or(just('n').to('\n'))
+            .or(just('r').to('\r'))
+            .or(just('t').to('\t')),
+    );
+
+    none_of("\\'")
+        .or(escape)
         .map(Value::Character)
         .delimited_by(just('\''), just('\''))
 }
 
 fn lit_str() -> impl Parser<char, Value, Error = Simple<char>> + Clone {
+    let escape = just('\\').ignore_then(
+        just('\\')
+            .or(just('/'))
+            .or(just('"'))
+            .or(just('n').to('\n'))
+            .or(just('r').to('\r'))
+            .or(just('t').to('\t')),
+    );
+
     none_of("\\\"")
+        .or(escape)
         .repeated()
-        .map(|cs| Value::String(cs.iter().collect()))
         .delimited_by(just('"'), just('"'))
+        .map(|s| s.iter().collect())
+        .map(Value::String)
 }
 
 fn lit_bool() -> impl Parser<char, Value, Error = Simple<char>> + Clone {
