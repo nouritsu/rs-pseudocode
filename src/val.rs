@@ -1,4 +1,5 @@
 use crate::{error::ValueError, result::ValueResult};
+use chumsky::Span;
 use std::{default, fmt::Display};
 use time::Date;
 
@@ -101,6 +102,13 @@ impl Value {
 
             Self::String(a) => match rhs {
                 Self::String(b) => Value::String(a.to_owned() + b),
+                Self::Character(b) => Value::String(a.to_owned() + &b.to_string()),
+                _ => return Err(ValueError::InvalidOperation),
+            },
+
+            Self::Character(a) => match rhs {
+                Self::Character(b) => Value::String(a.to_string() + &b.to_string()),
+                Self::String(b) => Value::String(a.to_string() + b),
                 _ => return Err(ValueError::InvalidOperation),
             },
 
