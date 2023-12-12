@@ -19,6 +19,9 @@ struct Args {
     /// Show time taken for each step
     #[arg(short, long)]
     time: bool,
+
+    #[arg(short, long)]
+    exec: Option<String>,
 }
 
 fn main() -> eyre::Result<()> {
