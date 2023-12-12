@@ -1,3 +1,4 @@
+pub mod environment;
 pub mod error;
 pub mod evaluator;
 pub mod executor;
@@ -5,7 +6,7 @@ pub mod expr;
 pub mod parser;
 pub mod result;
 pub mod stmt;
-pub mod value;
+pub mod val;
 
 // Re-Exports
 pub use evaluator::eval;
@@ -13,4 +14,4 @@ pub use executor::exec;
 pub use expr::Expr;
 pub use parser::parser;
 pub use stmt::Stmt;
-pub use value::Value;
+pub use val::Value;

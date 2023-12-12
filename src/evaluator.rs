@@ -1,4 +1,4 @@
-use crate::{error::EvaluatorError, expr::Expr, result::EvaluatorResult, value::Value};
+use crate::{error::EvaluatorError, expr::Expr, result::EvaluatorResult, val::Value};
 use std::collections::HashMap;
 
 pub fn eval(expr: &Expr, vars: &mut HashMap<String, Value>) -> EvaluatorResult<Value> {
