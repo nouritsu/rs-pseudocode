@@ -283,7 +283,7 @@ mod tests {
         };
     }
 
-    mod literals {
+    mod literal {
         use super::*;
 
         #[test]
