@@ -46,13 +46,15 @@ fn expr<'src>() -> pty!(Expr) {
 
         let atom = literal
             .or(expr.delimited_by(just('('), just(')')))
-            .or(variable);
+            .or(variable)
+            .boxed();
 
         let unary = jp("-")
             .to(Operator::Minus)
             .or(jp("NOT").to(Operator::Not))
             .repeated()
-            .foldr(atom, |op, rhs| Expr::Unary(op, Box::new(rhs)));
+            .foldr(atom, |op, rhs| Expr::Unary(op, Box::new(rhs)))
+            .boxed();
 
         let binary = {
             let product = unary
