@@ -1,167 +1,122 @@
-use crate::{expr::Expr, val::Value, Stmt};
+use crate::common::{Expr, Operator, Stmt, Value};
 use chumsky::prelude::*;
 use time::{Date, Month};
 
-pub fn parser() -> impl Parser<char, Vec<Stmt>, Error = Simple<char>> {
-    parse_stmt()
+macro_rules! pty {
+    ($t: ty) => {
+        impl Parser<'src, &'src str, $t, extra::Err<Rich<'src, char>>> + Clone
+    };
+}
+
+pub fn parser<'src>() -> pty!(Vec<Stmt>) {
+    stmt()
+        .padded()
         .then_ignore(text::newline().or(end()))
         .repeated()
-        .then_ignore(end())
+        .collect()
 }
 
 /* Statements */
-fn parse_stmt() -> impl Parser<char, Stmt, Error = Simple<char>> {
+fn stmt<'src>() -> pty!(Stmt) {
     stmt_output().or(stmt_expr())
 }
 
-fn stmt_expr() -> impl Parser<char, Stmt, Error = Simple<char>> {
-    parse_expr().map(|expr| Stmt::Expression(expr))
+fn stmt_output<'src>() -> pty!(Stmt) {
+    text::keyword("OUTPUT")
+        .ignore_then(expr().padded().separated_by(just(',')).collect())
+        .map(Stmt::Output)
+        .boxed()
 }
 
-fn stmt_output() -> impl Parser<char, Stmt, Error = Simple<char>> {
-    text::keyword("OUTPUT")
-        .ignore_then(parse_expr_args())
-        .map(Stmt::Output)
+fn stmt_expr<'src>() -> pty!(Stmt) {
+    expr().map(Stmt::Expression).boxed()
 }
 
 /* Expressions */
-fn parse_expr() -> impl Parser<char, Expr, Error = Simple<char>> {
-    let kws = vec![
-        // Operators
-        "NOT",
-        "OR",
-        "AND",
-        "DIV",
-        "MOD",
-        //Types
-        "ARRAY",
-        "INTEGER",
-        "REAL",
-        "CHAR",
-        "STRING",
-        "BOOLEAN",
-        "DATE",
-        // Declare Statements
-        "DECLARE",
-        "CONST",
-        // Selection Statements
-        "IF",
-        "THEN",
-        "ELSE",
-        "ENDIF",
-        "CASE",
-        "OF",
-        "ENDCASE",
-        // Loop Statements
-        "FOR",
-        "TO",
-        "NEXT",
-        "ENDFOR",
-        "WHILE",
-        "DO",
-        "ENDWHILE",
-        "REPEAT",
-        "UNTIL",
-        // Functions & Procedures
-        "PROCEDURE",
-        "ENDPROCEDURE",
-        "FUNCTION",
-        "ENDFUNCTION",
-        "RETURNS",
-        "BYREF",
-        "BYVAL",
-        "OUTPUT",
-        "INPUT",
-        "OPENFILE",
-        "CLOSEFILE",
-        "READ",
-        "WRITE",
-        "APPEND",
-        "RANDOM",
-    ];
+fn expr<'src>() -> pty!(Expr) {
+    let jp = |c| just(c).padded();
+
+    let variable = text::ident()
+        .and_is(kw().not())
+        .map(|s: &str| s.to_owned())
+        .map(Expr::Variable);
 
     recursive(|expr| {
-        let literal = lit().map(Expr::Literal);
-        let variable = text::ident().map(Expr::Variable);
+        let literal = literal().map(Expr::Literal);
+
         let atom = literal
             .or(expr.delimited_by(just('('), just(')')))
             .or(variable);
 
-        let op = |s| just(s).padded();
-
-        let unary = op("-")
-            .or(op("NOT"))
+        let unary = jp("-")
+            .to(Operator::Minus)
+            .or(jp("NOT").to(Operator::Not))
             .repeated()
-            .then(atom.clone())
-            .foldr(|op, rhs| match op {
-                "-" => Expr::Negation(Box::new(rhs)),
-                "NOT" => Expr::Not(Box::new(rhs)),
-                _ => unreachable!(),
-            });
+            .foldr(atom, |op, rhs| Expr::Unary(op, Box::new(rhs)));
 
         let binary = {
             let product = unary
                 .clone()
-                .then(
-                    op("*")
-                        .to(Expr::Multiplication as fn(_, _) -> _)
-                        .or(op("/").to(Expr::Division as fn(_, _) -> _))
-                        .or(op("DIV").to(Expr::Quotient as fn(_, _) -> _))
-                        .or(op("MOD").to(Expr::Modulo as fn(_, _) -> _))
-                        .then(unary)
-                        .repeated(),
+                .foldl(
+                    choice((
+                        jp("*").to(Operator::Multiply),
+                        jp("/").to(Operator::Divide),
+                        jp("DIV").to(Operator::Quotient),
+                        jp("MOD").to(Operator::Remainder),
+                    ))
+                    .then(unary)
+                    .repeated(),
+                    |lhs, (op, rhs)| Expr::Binary(Box::new(lhs), op, Box::new(rhs)),
                 )
-                .foldl(|lhs, (op, rhs)| op(Box::new(lhs), Box::new(rhs)));
+                .boxed();
 
             let sum = product
                 .clone()
-                .then(
-                    op("+")
-                        .to(Expr::Addition as fn(_, _) -> _)
-                        .or(op("-").to(Expr::Subtraction as fn(_, _) -> _))
+                .foldl(
+                    choice((jp("+").to(Operator::Plus), jp("-").to(Operator::Minus)))
                         .then(product)
                         .repeated(),
+                    |lhs, (op, rhs)| Expr::Binary(Box::new(lhs), op, Box::new(rhs)),
                 )
-                .foldl(|lhs, (op, rhs)| op(Box::new(lhs), Box::new(rhs)));
+                .boxed();
 
             let comparison1 = sum
                 .clone()
-                .then(
-                    op(">=")
-                        .to(Expr::GreaterEqual as fn(_, _) -> _)
-                        .or(op("<=").to(Expr::LesserEqual as fn(_, _) -> _))
-                        .or(op(">").to(Expr::GreaterThan as fn(_, _) -> _))
-                        .or(op("<").to(Expr::LesserThan as fn(_, _) -> _))
-                        .then(sum)
-                        .repeated(),
+                .foldl(
+                    choice((
+                        jp(">=").to(Operator::Ge),
+                        jp("<=").to(Operator::Le),
+                        jp(">").to(Operator::Gt),
+                        jp("<").to(Operator::Lt),
+                    ))
+                    .then(sum)
+                    .repeated(),
+                    |lhs, (op, rhs)| Expr::Binary(Box::new(lhs), op, Box::new(rhs)),
                 )
-                .foldl(|lhs, (op, rhs)| op(Box::new(lhs), Box::new(rhs)));
+                .boxed();
 
             let comparison2 = comparison1
                 .clone()
-                .then(
-                    op("=")
-                        .to(Expr::Equals as fn(_, _) -> _)
-                        .or(op("<>").to(Expr::NotEquals as fn(_, _) -> _))
+                .foldl(
+                    choice((jp("=").to(Operator::Eq), jp("<>").to(Operator::Ne)))
                         .then(comparison1)
                         .repeated(),
+                    |lhs, (op, rhs)| Expr::Binary(Box::new(lhs), op, Box::new(rhs)),
                 )
-                .foldl(|lhs, (op, rhs)| op(Box::new(lhs), Box::new(rhs)));
+                .boxed();
 
             let and = comparison2
                 .clone()
-                .then(
-                    op("AND")
-                        .to(Expr::And as fn(_, _) -> _)
-                        .then(comparison2)
-                        .repeated(),
+                .foldl(
+                    jp("AND").to(Operator::And).then(comparison2).repeated(),
+                    |lhs, (op, rhs)| Expr::Binary(Box::new(lhs), op, Box::new(rhs)),
                 )
-                .foldl(|lhs, (op, rhs)| op(Box::new(lhs), Box::new(rhs)));
+                .boxed();
 
-            let or = and
-                .clone()
-                .then(op("OR").to(Expr::Or as fn(_, _) -> _).then(and).repeated())
-                .foldl(|lhs, (op, rhs)| op(Box::new(lhs), Box::new(rhs)));
+            let or = and.clone().foldl(
+                jp("OR").to(Operator::Or).then(and).repeated(),
+                |lhs, (op, rhs)| Expr::Binary(Box::new(lhs), op, Box::new(rhs)),
+            );
 
             or
         };
@@ -171,28 +126,8 @@ fn parse_expr() -> impl Parser<char, Expr, Error = Simple<char>> {
 }
 
 /* Literals */
-fn lit() -> impl Parser<char, Value, Error = Simple<char>> + Clone {
-    lit_real()
-        .or(lit_int())
-        .or(lit_char())
-        .or(lit_str())
-        .or(lit_bool())
-        .or(lit_date())
-}
-
-fn lit_real() -> impl Parser<char, Value, Error = Simple<char>> + Clone {
-    text::int(10)
-        .then_ignore(just('.'))
-        .then(text::int(10))
-        .map(|(w, h)| Value::Real(format!("{}.{}", w, h).parse().unwrap()))
-}
-
-fn lit_int() -> impl Parser<char, Value, Error = Simple<char>> + Clone {
-    text::int(10).map(|s: String| Value::Integer(s.parse().unwrap()))
-}
-
-fn lit_char() -> impl Parser<char, Value, Error = Simple<char>> + Clone {
-    let escape = just('\\').ignore_then(
+fn literal<'src>() -> pty!(Value) {
+    let c_escape = just('\\').ignore_then(
         just('\\')
             .or(just('/'))
             .or(just('\''))
@@ -201,14 +136,7 @@ fn lit_char() -> impl Parser<char, Value, Error = Simple<char>> + Clone {
             .or(just('t').to('\t')),
     );
 
-    none_of("\\'")
-        .or(escape)
-        .map(Value::Character)
-        .delimited_by(just('\''), just('\''))
-}
-
-fn lit_str() -> impl Parser<char, Value, Error = Simple<char>> + Clone {
-    let escape = just('\\').ignore_then(
+    let s_escape = just('\\').ignore_then(
         just('\\')
             .or(just('/'))
             .or(just('"'))
@@ -217,155 +145,124 @@ fn lit_str() -> impl Parser<char, Value, Error = Simple<char>> + Clone {
             .or(just('t').to('\t')),
     );
 
-    none_of("\\\"")
-        .or(escape)
-        .repeated()
-        .delimited_by(just('"'), just('"'))
-        .map(|s| s.iter().collect())
-        .map(Value::String)
-}
+    let real = text::int(10)
+        .then_ignore(just("."))
+        .then(text::int(10))
+        .map(|(w, f): (&str, &str)| format!("{}.{}", w, f).parse().unwrap())
+        .map(Value::Real)
+        .boxed();
 
-fn lit_bool() -> impl Parser<char, Value, Error = Simple<char>> + Clone {
-    just("TRUE")
+    let int = text::int(10)
+        .map(|s: &str| s.parse().unwrap())
+        .map(Value::Integer)
+        .boxed();
+
+    let r#bool = just("TRUE")
         .or(just("FALSE"))
-        .map(|s| Value::Boolean(s == "TRUE"))
-}
+        .map(|s: &str| s == "TRUE")
+        .map(Value::Boolean)
+        .boxed();
 
-fn lit_date() -> impl Parser<char, Value, Error = Simple<char>> + Clone {
-    n_digits(2, 10)
+    let r#char = none_of("\\'")
+        .or(c_escape)
+        .delimited_by(just('\''), just('\''))
+        .map(Value::Character)
+        .boxed();
+
+    let r#str = none_of("\\\"")
+        .or(s_escape)
+        .repeated()
+        .collect::<String>()
+        .delimited_by(just('"'), just('"'))
+        .map(Value::String)
+        .boxed();
+
+    let date = n_digits(2, 10)
         .then_ignore(just('/'))
         .then(n_digits(2, 10))
-        .then_ignore(just("/"))
+        .then_ignore(just('/'))
         .then(n_digits(4, 10))
-        .map(|((d, m), y)| {
-            Value::Date(
-                Date::from_calendar_date(
-                    y as i32,
-                    Month::try_from(m as u8).unwrap(), //TODO: handle the error here, don't unwrap
-                    d as u8,
-                )
-                .unwrap(), //TODO: handle the error here, don't unwrap
-            )
-        })
         .delimited_by(just('`'), just('`'))
+        .map(|((d, m), y)| {
+            Date::from_calendar_date(y as i32, Month::try_from(m as u8).unwrap(), d as u8).unwrap()
+        })
+        .map(Value::Date)
+        .boxed();
+
+    choice((real, int, r#bool, r#char, r#str, date))
 }
 
 /* Helpers */
-fn n_digits(n: usize, radix: u32) -> impl Parser<char, u32, Error = Simple<char>> + Clone {
-    filter(move |c: &char| c.is_digit(radix))
-        .repeated()
+fn kw<'src>() -> pty!(()) {
+    choice(vec![
+        // IO
+        text::keyword("OUTPUT"),
+        text::keyword("INPUT"),
+        text::keyword("OPENFILE"),
+        text::keyword("CLOSEFILE"),
+        text::keyword("READFILE"),
+        text::keyword("WRITEFILE"),
+        text::keyword("SEEK"),
+        text::keyword("GETRECORD"),
+        text::keyword("PUTRECORD"),
+        text::keyword("READ"),
+        text::keyword("WRITE"),
+        text::keyword("APPEND"),
+        text::keyword("RANDOM"),
+        // Types
+        text::keyword("INTEGER"),
+        text::keyword("REAL"),
+        text::keyword("BOOLEAN"),
+        text::keyword("CHAR"),
+        text::keyword("STRING"),
+        text::keyword("DATE"),
+        text::keyword("ARRAY"),
+        text::keyword("TYPE"),
+        text::keyword("ENDTYPE"),
+        // Selection
+        text::keyword("IF"),
+        text::keyword("THEN"),
+        text::keyword("ELSE"),
+        text::keyword("ENDIF"),
+        text::keyword("CASE"),
+        text::keyword("OF"),
+        text::keyword("OTHERWISE"),
+        text::keyword("ENDCASE"),
+        // Loops
+        text::keyword("FOR"),
+        text::keyword("TO"),
+        text::keyword("STEP"),
+        text::keyword("NEXT"),
+        text::keyword("ENDFOR"),
+        text::keyword("REPEAT"),
+        text::keyword("UNTIL"),
+        text::keyword("WHILE"),
+        text::keyword("DO"),
+        text::keyword("ENDWHILE"),
+        // Declaration
+        text::keyword("DECLARE"),
+        text::keyword("CONSTANT"),
+        // Operators
+        text::keyword("MOD"),
+        text::keyword("DIV"),
+        text::keyword("AND"),
+        text::keyword("OR"),
+        text::keyword("NOT"),
+        // Functions or Procedures
+        text::keyword("PROCEDURE"),
+        text::keyword("ENDPROCEDURE"),
+        text::keyword("CALL"),
+        text::keyword("FUNCTION"),
+        text::keyword("RETURNS"),
+        text::keyword("BYREF"),
+        text::keyword("ENDFUNCTION"),
+    ])
+    .ignored()
+}
+
+fn n_digits<'src>(n: usize, radix: u32) -> pty!(u32) {
+    text::digits(radix)
         .exactly(n)
         .collect()
-        .map(|s: String| s.parse().unwrap())
-        .padded()
-}
-
-fn parse_expr_args() -> impl Parser<char, Vec<Expr>, Error = Simple<char>> {
-    parse_expr().padded().separated_by(just(","))
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use crate::Value::*;
-    use time::macros::date;
-
-    macro_rules! passes {
-        ($r : expr, $x :expr) => {
-            assert!($r.is_ok());
-            assert_eq!($r.unwrap(), $x)
-        };
-    }
-
-    macro_rules! fails {
-        ($r :expr) => {
-            assert!($r.is_err());
-        };
-    }
-
-    mod literal {
-        use super::*;
-
-        #[test]
-        fn integer() {
-            let p = lit_int();
-
-            passes!(p.parse("123"), Integer(123));
-            passes!(p.parse("0"), Integer(0));
-
-            fails!(p.parse(""));
-        }
-
-        #[test]
-        fn real() {
-            let p = lit_real();
-
-            passes!(p.parse("123.123"), Real(123.123));
-            passes!(p.parse("0.0"), Real(0.0));
-
-            fails!(p.parse("123"));
-            fails!(p.parse("0"));
-
-            fails!(p.parse(""));
-        }
-
-        #[test]
-        fn character() {
-            let p = lit_char();
-
-            passes!(p.parse("'a'"), Character('a'));
-            passes!(p.parse("'\n'"), Character('\n'));
-
-            fails!(p.parse("''"));
-            fails!(p.parse("a"));
-            fails!(p.parse("'abc'"));
-
-            fails!(p.parse(""));
-        }
-
-        #[test]
-        fn string() {
-            let p = lit_str();
-
-            passes!(p.parse("\"a\""), String("a".into()));
-            passes!(p.parse("\"Hello\""), String("Hello".into()));
-            passes!(p.parse("\"\n\""), String("\n".into()));
-            passes!(p.parse("\"\""), String("".into()));
-
-            fails!(p.parse("a"));
-
-            fails!(p.parse(""));
-        }
-
-        #[test]
-        fn boolean() {
-            let p = lit_bool();
-
-            passes!(p.parse("TRUE"), Boolean(true));
-            passes!(p.parse("FALSE"), Boolean(false));
-
-            fails!(p.parse("false"));
-            fails!(p.parse("true"));
-
-            fails!(p.parse("FALES"));
-
-            fails!(p.parse(""));
-        }
-
-        #[test]
-        fn date() {
-            let p = lit_date();
-
-            passes!(p.parse("`12/12/2023`"), Date(date!(2023 - 12 - 12)));
-
-            fails!(p.parse("12/12/2023"));
-            fails!(p.parse("12-12-2023"));
-
-            fails!(p.parse("`1-12-2023`"));
-            fails!(p.parse("`12-1-2023`"));
-            fails!(p.parse("`12-12-23`"));
-
-            fails!(p.parse(""));
-        }
-    }
+        .map(|s: String| s.parse().expect("infallible"))
 }

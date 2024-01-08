@@ -1,14 +1,12 @@
 use chumsky::Parser;
 use clap::Parser as CLParser;
-use color_eyre::{eyre, install as color_install, owo_colors::OwoColorize};
-use humantime::format_duration;
+use color_eyre::{eyre, install as color_install};
 use rs_pseudocode::{exec, parser};
 use std::{
     collections::HashMap,
     fs,
     io::{self, Write},
     process::exit,
-    time::{Duration, Instant},
 };
 
 #[derive(CLParser)]
@@ -28,36 +26,29 @@ fn main() -> eyre::Result<()> {
     color_install()?;
 
     let args = Args::parse();
-
     match args.src {
-        Some(f) => run_file(&f, args.time),
-        None => run_repl(args.time),
+        Some(f) => run_file(&f),
+        None => match args.exec {
+            Some(src) => run(&src),
+            None => run_repl(),
+        },
     }
 
     Ok(())
 }
 
-fn run_file(f: &str, show_time: bool) {
+fn run_file(f: &str) {
     let src = fs::read_to_string(f).expect("unable to read source file");
-    let (pt, et) = run(&src, false);
-    if show_time {
-        println!(
-            "Parse Time    :   {}",
-            format_duration(pt).to_string().bright_blue()
-        );
-        println!(
-            "Exec Time     :   {}",
-            format_duration(et).to_string().bright_red()
-        );
-    }
+    run(&src);
 }
 
-fn run_repl(show_time: bool) {
+fn run_repl() {
     loop {
+        let mut line = String::new();
+
         print!(":> ");
         io::stdout().flush().expect("unable to flush stdout");
 
-        let mut line = String::new();
         io::stdin()
             .read_line(&mut line)
             .expect("unable to read from stdin");
@@ -66,44 +57,23 @@ fn run_repl(show_time: bool) {
             exit(0);
         }
 
-        let (pt, et) = run(&line, true);
-        if show_time {
-            println!(
-                "Parse Time    :   {}",
-                format_duration(pt).to_string().bright_blue()
-            );
-            println!(
-                "Exec Time     :   {}",
-                format_duration(et).to_string().bright_red()
-            );
-        }
+        run(&line);
     }
 }
 
-fn run(src: &str, repl: bool) -> (Duration, Duration) {
-    let mut pt = Duration::default();
-    let mut et = Duration::default();
-
-    let mut reference = Instant::now();
-    match parser().parse(src) {
-        Ok(stmts) => {
-            pt = Instant::now() - reference;
-            reference = Instant::now();
-            for stmt in stmts {
-                match exec(&stmt, &mut HashMap::new()) {
-                    Ok(res) => {
-                        et = Instant::now() - reference;
-                        match res {
-                            Some(s) if repl => println!("{}", s),
-                            _ => {}
-                        }
-                    }
-                    Err(err) => println!("{}", err),
+fn run(src: &str) {
+    match parser().parse(src).into_result() {
+        Ok(ast) => {
+            for stmt in ast.iter() {
+                match exec(stmt, &mut HashMap::new()) {
+                    Ok(Some(x)) => println!("{}", x),
+                    Err(e) => println!("Exec Error: {:?}", e),
+                    _ => {}
                 }
             }
         }
-        Err(err) => err.into_iter().for_each(|e| println!("{}", e)),
+        Err(parse_err) => parse_err
+            .into_iter()
+            .for_each(|e| println!("Parse Error: {:?}", e)),
     };
-
-    return (pt, et);
 }
